@@ -10,13 +10,15 @@ public class MessageDto {
     private Date ms2Timestamp;
     private Date ms3Timestamp;
     private Date endTimestamp;
+    private boolean sent;
 
     public MessageDto() {
     }
 
-    public MessageDto(Integer sessionId, Date ms1Timestamp) {
+    public MessageDto(Integer sessionId, Date ms1Timestamp, boolean sent) {
         this.sessionId = sessionId;
         this.ms1Timestamp = ms1Timestamp;
+        this.sent = sent;
     }
 
     public Integer getId() {
@@ -70,6 +72,15 @@ public class MessageDto {
 
     public MessageDto setEndTimestamp(Date endTimestamp) {
         this.endTimestamp = endTimestamp;
+        return this;
+    }
+
+    public boolean isSent() {
+        return sent;
+    }
+
+    public MessageDto setSent(boolean sent) {
+        this.sent = sent;
         return this;
     }
 }

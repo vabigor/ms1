@@ -22,6 +22,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 public class MessageServiceImpl implements MessageService {
@@ -33,6 +34,7 @@ public class MessageServiceImpl implements MessageService {
     private Instant start;
     private Instant end;
     private ScheduledExecutorService scheduler;
+    private List<MessageDto> messages = new ArrayList<>();
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Value("${web-socket.url}")
@@ -64,13 +66,19 @@ public class MessageServiceImpl implements MessageService {
             StompSessionHandler sessionHandler = new CustomStompSessionHandler();
             StompSession stompSession = null;
             sessionId++;
-            try {
-                stompSession = stompClient.connect(URL, sessionHandler).get();
-                stompSession.send(TOPIC, new MessageDto(sessionId, new Date()));
-                countMessage++;
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
+            MessageDto message = new MessageDto(sessionId, new Date(), Boolean.FALSE);
+            messages.add(message);
+            for(MessageDto dto : messages.stream().filter(m->!m.isSent()).collect(Collectors.toList())){
+                try {
+                    stompSession = stompClient.connect(URL, sessionHandler).get();
+                    stompSession.send(TOPIC, dto);
+                    dto.setSent(Boolean.TRUE);
+                    countMessage++;
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                }
             }
+            messages.removeAll(messages.stream().filter(MessageDto::isSent).collect(Collectors.toList()));
         }, 0, PERIOD, TimeUnit.SECONDS);
     }
 
